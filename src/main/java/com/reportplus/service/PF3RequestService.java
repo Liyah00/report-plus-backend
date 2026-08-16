@@ -59,52 +59,123 @@ public class PF3RequestService {
     // APPROVE REQUEST AND CREATE PF3 FORM
     public PF3Request approveRequest(Long requestId) {
 
-
         PF3Request request = repository.findById(requestId)
                 .orElseThrow(() ->
                         new RuntimeException("PF3 Request not found"));
 
 
-        request.setStatus("APPROVED");
-
-
+        // Generate PF3 code
         String code = "PF3-" + System.currentTimeMillis();
 
+        request.setStatus("APPROVED");
         request.setPf3Code(code);
+        request.setApprovedAt(LocalDateTime.now());
 
 
-        PF3Request savedRequest = repository.save(request);
+        PF3Request savedRequest =
+                repository.save(request);
 
 
-
-        // CHECK IF FORM ALREADY EXISTS
+        // CHECK IF PF3 FORM ALREADY EXISTS
         PF3Form existingForm =
                 pf3FormRepository
-                .findByRequest_RequestId(
-                        savedRequest.getRequestId()
-                )
-                .orElse(null);
-
+                        .findByRequest_RequestId(
+                                savedRequest.getRequestId()
+                        )
+                        .orElse(null);
 
 
         // CREATE FORM ONLY ONCE
-        if(existingForm == null){
+        if (existingForm == null) {
 
 
-            Organization hospital =
+            /*
+             * FIND ACTIVE HOSPITALS
+             */
+            List<Organization> hospitals =
                     organizationRepository
-                    .findByOrganizationTypeAndStatus(
-                            "HOSPITAL",
-                            "ACTIVE"
-                    )
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() ->
-                            new RuntimeException(
-                                    "No active hospital found"
-                            ));
+                            .findByOrganizationTypeAndStatus(
+                                    "HOSPITAL",
+                                    "ACTIVE"
+                            );
 
 
+            if (hospitals.isEmpty()) {
+
+                throw new RuntimeException(
+                        "No active hospital found"
+                );
+
+            }
+
+
+            /*
+             * CHECK PF3 LOCATION
+             */
+            if (savedRequest.getLatitude() == null ||
+                    savedRequest.getLongitude() == null) {
+
+                throw new RuntimeException(
+                        "PF3 request location is missing"
+                );
+
+            }
+
+
+            /*
+             * FIND NEAREST HOSPITAL
+             */
+
+            Organization nearestHospital = null;
+
+            double shortestDistance =
+                    Double.MAX_VALUE;
+
+
+            for (Organization hospital : hospitals) {
+
+
+                // Skip hospital without coordinates
+                if (hospital.getLatitude() == null ||
+                        hospital.getLongitude() == null) {
+
+                    continue;
+
+                }
+
+
+                double distance =
+                        calculateDistance(
+                                savedRequest.getLatitude(),
+                                savedRequest.getLongitude(),
+                                hospital.getLatitude(),
+                                hospital.getLongitude()
+                        );
+
+
+                if (distance < shortestDistance) {
+
+                    shortestDistance = distance;
+
+                    nearestHospital = hospital;
+
+                }
+
+            }
+
+
+            if (nearestHospital == null) {
+
+                throw new RuntimeException(
+                        "No active hospital with valid location found"
+                );
+
+            }
+
+
+            /*
+             * CREATE PF3 FORM
+             */
 
             PF3Form form = new PF3Form();
 
@@ -113,7 +184,7 @@ public class PF3RequestService {
             form.setRequest(savedRequest);
 
             form.setHospitalId(
-                    hospital.getOrganizationId()
+                    nearestHospital.getOrganizationId()
             );
 
             form.setStatus("PENDING");
@@ -125,11 +196,59 @@ public class PF3RequestService {
 
             pf3FormRepository.save(form);
 
+
+            System.out.println(
+                    "PF3 assigned to hospital: "
+                    + nearestHospital.getOrganizationName()
+            );
+
         }
 
 
         return savedRequest;
+    }
 
+
+    /*
+     * HAVERSINE DISTANCE
+     *
+     * Returns distance in kilometers
+     */
+    private double calculateDistance(
+            double lat1,
+            double lon1,
+            double lat2,
+            double lon2
+    ) {
+
+        final int EARTH_RADIUS_KM = 6371;
+
+
+        double latDistance =
+                Math.toRadians(lat2 - lat1);
+
+        double lonDistance =
+                Math.toRadians(lon2 - lon1);
+
+
+        double a =
+                Math.sin(latDistance / 2)
+                        * Math.sin(latDistance / 2)
+                +
+                Math.cos(Math.toRadians(lat1))
+                        * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(lonDistance / 2)
+                        * Math.sin(lonDistance / 2);
+
+
+        double c =
+                2 * Math.atan2(
+                        Math.sqrt(a),
+                        Math.sqrt(1 - a)
+                );
+
+
+        return EARTH_RADIUS_KM * c;
     }
 
 }

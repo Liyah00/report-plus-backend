@@ -14,27 +14,69 @@ public class PF3Form {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long formId;
 
-    // PF3 Code generated after approval
+
+    // =========================================
+    // PF3 CODE
+    // =========================================
+
     @Column(unique = true, nullable = false)
     private String pf3Code;
 
-    // Request this form belongs to
+
+    // =========================================
+    // REQUEST
+    // =========================================
+
     @OneToOne
     @JoinColumn(name = "request_id", nullable = false)
     private PF3Request request;
 
-    // Hospital assigned to examine the victim
+
+    // =========================================
+    // HOSPITAL
+    // =========================================
+
     private Long hospitalId;
 
-    // Police officer who approved
+
+    // =========================================
+    // POLICE OFFICER
+    // =========================================
+
     private Long approvedByPoliceId;
 
-    // Current form status
+
+    // =========================================
+    // STATUS
+    // =========================================
+
     private String status;
 
-    // Date created
+
+    // =========================================
+    // DATES
+    // =========================================
+
     private LocalDateTime createdAt;
 
-    // Date hospital completed examination
     private LocalDateTime completedAt;
+
+
+    // =========================================
+    // DISPLAY INFORMATION FOR HOSPITAL
+    // These are NOT database columns.
+    // =========================================
+
+    @Transient
+    private String patientName;
+
+    @Transient
+    private Long caseNumber;
+
+    @Transient
+    private String incidentType;
+
+    @Transient
+    private String incidentLocation;
+
 }

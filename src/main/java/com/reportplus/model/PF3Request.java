@@ -3,6 +3,8 @@ package com.reportplus.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Entity
 @Table(name = "pf3_requests")
@@ -10,23 +12,39 @@ public class PF3Request {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "request_id")
     private Long requestId;
 
+    @Column(name = "citizen_id", nullable = false)
     private Long citizenId;
 
-    private String incidentType;
+    @Column(name = "case_id", nullable = false)
+    private Long caseId;
 
-    private String description;
+    @Column(nullable = false)
+    private String status = "PENDING";
 
-    private Double latitude;
+    @Column(name = "pf3_code")
+    private String pf3Code;
 
-    private Double longitude;
+    @Column(name = "requested_at")
+    private LocalDateTime requestedAt;
 
-    private String locationName;
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
 
-    private String incidentAddress;
+    @PrePersist
+    public void onCreate() {
+        requestedAt = LocalDateTime.now();
+    }
 
-    private String status; // PENDING, APPROVED, REJECTED
+@Column(name = "latitude")
+private Double latitude;
 
-    private String pf3Code; // generated after approval
+@Column(name = "longitude")
+private Double longitude;
+
+@Column(name = "location_name")
+private String locationName;
+
 }

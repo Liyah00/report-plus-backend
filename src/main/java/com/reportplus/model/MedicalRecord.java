@@ -14,19 +14,48 @@ public class MedicalRecord {
     private Long recordId;
 
 
+    // =========================================
+    // PF3
+    // =========================================
+
     @OneToOne
     @JoinColumn(name = "pf3_id", nullable = false)
     private PF3Form pf3;
 
 
+    // =========================================
+    // HOSPITAL STAFF
+    // =========================================
+
     @Column(name = "hospital_staff_id")
     private Long hospitalStaffId;
 
 
+    // =========================================
+    // MEDICAL EXAMINATION
+    // =========================================
+
+    @Column(columnDefinition = "TEXT")
     private String injuries;
 
+
+    @Column(columnDefinition = "TEXT")
     private String findings;
 
+
+    @Column(columnDefinition = "TEXT")
     private String treatment;
+
+
+    @Column(name = "doctor_opinion", columnDefinition = "TEXT")
+    private String doctorOpinion;
+
+
+    @Column(columnDefinition = "TEXT")
+    private String recommendation;
+
+
+    @Column(name = "doctor_name")
+    private String doctorName;
 
 }

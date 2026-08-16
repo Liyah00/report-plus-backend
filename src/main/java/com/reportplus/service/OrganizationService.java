@@ -31,6 +31,50 @@ public class OrganizationService {
                 .orElseThrow(() -> new RuntimeException("Organization not found"));
     }
 
+    // UPDATE ORGANIZATION
+public Organization update(Long id, Organization organization) {
+
+    Organization existing = repository.findById(id)
+            .orElseThrow(() ->
+                    new RuntimeException("Organization not found"));
+
+    existing.setOrganizationName(
+            organization.getOrganizationName());
+
+    existing.setOrganizationType(
+            organization.getOrganizationType());
+
+    existing.setPhoneNumber(
+            organization.getPhoneNumber());
+
+    existing.setAddress(
+            organization.getAddress());
+
+    existing.setLatitude(
+            organization.getLatitude());
+
+    existing.setLongitude(
+            organization.getLongitude());
+
+    existing.setStatus(
+            organization.getStatus());
+
+    return repository.save(existing);
+
+}
+
+
+// DELETE ORGANIZATION
+public void delete(Long id) {
+
+    Organization organization = repository.findById(id)
+            .orElseThrow(() ->
+                    new RuntimeException("Organization not found"));
+
+    repository.delete(organization);
+
+}
+
     // GET ACTIVE HOSPITALS
     public List<Organization> getActiveHospitals() {
         return repository.findByOrganizationTypeAndStatus(

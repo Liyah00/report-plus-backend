@@ -40,4 +40,25 @@ public class OrganizationController {
     public List<Organization> getHospitals() {
         return service.getActiveHospitals();
     }
+
+// UPDATE
+@PutMapping("/{id}")
+public Organization update(
+        @PathVariable Long id,
+        @RequestBody Organization organization
+) {
+
+    return service.update(id, organization);
+
+}
+
+
+// DELETE
+@DeleteMapping("/{id}")
+public void delete(@PathVariable Long id) {
+
+    service.delete(id);
+
+}
+
 }
